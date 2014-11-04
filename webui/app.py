@@ -33,6 +33,7 @@ app.config.update({
 import base64
 from flask.ext import login
 login_manager = login.LoginManager()
+login_manager.login_view = 'loginUser'
 login_manager.init_app(app)
 
 class User(login.UserMixin):

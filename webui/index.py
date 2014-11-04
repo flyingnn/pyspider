@@ -7,16 +7,26 @@
 
 import re
 from app import app
-from flask import abort, render_template, request, json
+from flask import abort, render_template, request, json,redirect,url_for
 from flask.ext import login
+from flask.ext.login import login_user, logout_user, current_user, login_required
 
 index_fields = ['name', 'group', 'status', 'comments', 'rate', 'burst', ]
 @app.route('/')
+@app.route('/index')
+@login_required
 def index():
     projectdb = app.config['projectdb']
     return render_template("index.html", projects=projectdb.get_all(fields=index_fields))
+    
+@app.route('/login', methods = ['GET', 'POST'])
+def loginUser():
+    if login.current_user.is_active():
+        return redirect(url_for('index'))
+    return app.login_response
 
 @app.route('/update', methods=['POST', ])
+@login_required
 def project_update():
     projectdb = app.config['projectdb']
     project = request.form['pk']
@@ -57,6 +67,7 @@ def project_update():
         return 'update error', 500
 
 @app.route('/counter')
+@login_required
 def counter():
     rpc = app.config['scheduler_rpc']
     if rpc is None:
@@ -68,6 +79,7 @@ def counter():
     return json.dumps(rpc.counter(time, type)), 200, {'Content-Type': 'application/json'}
 
 @app.route('/run', methods=['POST', ])
+@login_required
 def runtask():
     rpc = app.config['scheduler_rpc']
     if rpc is None:
